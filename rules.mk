@@ -122,3 +122,7 @@ SLEEP_LED_ENABLE = no    # Breathing sleep LED during USB suspend
 # $(info -- RGBLIGHT_ENABLE=$(RGBLIGHT_ENABLE))
 # $(info -- OPT_DEFS=$(OPT_DEFS))
 # $(info )
+
+# convert Helix-specific options (that represent combinations of standard options)
+#   into QMK standard options.
+include $(strip $(KEYBOARD_LOCAL_FEATURES_MK))

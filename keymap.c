@@ -8,13 +8,6 @@
   #include "ssd1306.h"
 #endif
 
-extern keymap_config_t keymap_config;
-
-#ifdef RGBLIGHT_ENABLE
-//Following line allows macro to read current RGB settings
-extern rgblight_config_t rgblight_config;
-#endif
-
 extern uint8_t is_master;
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
@@ -35,14 +28,7 @@ enum custom_keycodes {
   ADJUST
 };
 
-enum macro_keycodes {
-  KC_SAMPLEMACRO,
-};
-
-//Macros
-#define M_SAMPLE M(KC_SAMPLEMACRO)
-
-#if HELIX_ROWS == 5
+#if MATRIX_ROWS == 10 // HELIX_ROWS == 5
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_QWERTY] = LAYOUT( \
       KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                      KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC, \
@@ -107,9 +93,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case QWERTY:
       if (record->event.pressed) {
-        #ifdef AUDIO_ENABLE
-          PLAY_SONG(tone_qwerty);
-        #endif
         persistent_default_layer_set(1UL<<_QWERTY);
       }
       return false;
@@ -121,16 +104,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (TOG_STATUS) { //TOG_STATUS checks is another reactive key currently pressed, only changes RGB mode if returns false
         } else {
           TOG_STATUS = !TOG_STATUS;
-          #ifdef RGBLIGHT_ENABLE
-            //rgblight_mode(RGBLIGHT_MODE_SNAKE + 1);
-          #endif
         }
         layer_on(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
-        #ifdef RGBLIGHT_ENABLE
-          //rgblight_mode(RGB_current_mode);   // revert RGB to initial mode prior to RGB mode change
-        #endif
         TOG_STATUS = false;
         layer_off(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
@@ -144,16 +121,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if (TOG_STATUS) { //TOG_STATUS checks is another reactive key currently pressed, only changes RGB mode if returns false
         } else {
           TOG_STATUS = !TOG_STATUS;
-          #ifdef RGBLIGHT_ENABLE
-            //rgblight_mode(RGBLIGHT_MODE_SNAKE);
-          #endif
         }
         layer_on(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
-        #ifdef RGBLIGHT_ENABLE
-          //rgblight_mode(RGB_current_mode);  // revert RGB to initial mode prior to RGB mode change
-        #endif
         layer_off(_RAISE);
         TOG_STATUS = false;
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
@@ -178,7 +149,6 @@ void matrix_init_user(void) {
         iota_gfx_init(!has_usb());   // turns on the display
     #endif
 }
-
 
 //SSD1306 OLED update loop, make sure to add #define SSD1306OLED in config.h
 #ifdef SSD1306OLED
@@ -213,26 +183,10 @@ static void render_logo(struct CharacterMatrix *matrix) {
   //matrix_write_P(&matrix, PSTR(" Split keyboard kit"));
 }
 
-
-
-void render_status(struct CharacterMatrix *matrix) {
-
-  // Render to mode icon
-  static char logo[][2][3]={{{0x95,0x96,0},{0xb5,0xb6,0}},{{0x97,0x98,0},{0xb7,0xb8,0}}};
-  if(keymap_config.swap_lalt_lgui==false){
-    matrix_write(matrix, logo[0][0]);
-    matrix_write_P(matrix, PSTR("\n"));
-    matrix_write(matrix, logo[0][1]);
-  }else{
-    matrix_write(matrix, logo[1][0]);
-    matrix_write_P(matrix, PSTR("\n"));
-    matrix_write(matrix, logo[1][1]);
-  }
-
+static void render_layer_status(struct CharacterMatrix *matrix) {
   // Define layers here, Have not worked out how to have text displayed for each layer. Copy down the number you see and add a case for it below
-  char buf[40];
-  snprintf(buf,sizeof(buf), "Undef-%ld", layer_state);
-  matrix_write_P(matrix, PSTR("\nLayer: "));
+  char buf[10];
+  matrix_write_P(matrix, PSTR("Layer: "));
     switch (layer_state) {
         case L_BASE:
            matrix_write_P(matrix, PSTR("Default"));
@@ -248,17 +202,40 @@ void render_status(struct CharacterMatrix *matrix) {
            matrix_write_P(matrix, PSTR("Adjust"));
            break;
         default:
+           matrix_write_P(matrix, PSTR("Undef-"));
+           snprintf(buf,sizeof(buf), "%ld", layer_state);
            matrix_write(matrix, buf);
     }
+}
+
+void render_status(struct CharacterMatrix *matrix) {
+
+  // Render to mode icon
+  static const char os_logo[][2][3] PROGMEM  ={{{0x95,0x96,0},{0xb5,0xb6,0}},{{0x97,0x98,0},{0xb7,0xb8,0}}};
+  if(keymap_config.swap_lalt_lgui==false){
+    matrix_write_P(matrix, os_logo[0][0]);
+    matrix_write_P(matrix, PSTR("\n"));
+    matrix_write_P(matrix, os_logo[0][1]);
+  }else{
+    matrix_write_P(matrix, os_logo[1][0]);
+    matrix_write_P(matrix, PSTR("\n"));
+    matrix_write_P(matrix, os_logo[1][1]);
+  }
+
+  matrix_write_P(matrix, PSTR(" "));
+  render_layer_status(matrix);
+  matrix_write_P(matrix, PSTR("\n"));
 
   // Host Keyboard LED Status
-  char led[40];
-    snprintf(led, sizeof(led), "\n%s  %s  %s",
-            (host_keyboard_leds() & (1<<USB_LED_NUM_LOCK)) ? "NUMLOCK" : "       ",
-            (host_keyboard_leds() & (1<<USB_LED_CAPS_LOCK)) ? "CAPS" : "    ",
-            (host_keyboard_leds() & (1<<USB_LED_SCROLL_LOCK)) ? "SCLK" : "    ");
-  matrix_write(matrix, led);
+  matrix_write_P(matrix, (host_keyboard_leds() & (1<<USB_LED_NUM_LOCK)) ?
+                 PSTR("NUMLOCK") : PSTR("       "));
+  matrix_write_P(matrix, (host_keyboard_leds() & (1<<USB_LED_CAPS_LOCK)) ?
+                 PSTR("CAPS") : PSTR("    "));
+  matrix_write_P(matrix, (host_keyboard_leds() & (1<<USB_LED_SCROLL_LOCK)) ?
+                 PSTR("SCLK") : PSTR("    "));
+  matrix_write_P(matrix, PSTR("\n"));
 }
+
 
 
 void iota_gfx_task_user(void) {
@@ -275,6 +252,7 @@ void iota_gfx_task_user(void) {
     render_status(&matrix);
   }else{
     render_logo(&matrix);
+    render_layer_status(&matrix);
   }
   matrix_update(&display, &matrix);
 }
