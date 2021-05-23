@@ -24,21 +24,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // If you need more program area, try select and reduce rgblight modes to use.
 
-#define MOUSEKEY_DELAY        100
-#define MOUSEKEY_INTERVAL     5
-#define MOUSEKEY_MAX_SPEED    5
-#define MOUSEKEY_TIME_TO_MAX  80
+// Selection of RGBLIGHT MODE to use.
+#if defined(LED_ANIMATIONS)
+#    define RGBLIGHT_EFFECT_BREATHING
+#    define RGBLIGHT_EFFECT_RAINBOW_MOOD
+#    define RGBLIGHT_EFFECT_RAINBOW_SWIRL
+#    define RGBLIGHT_EFFECT_SNAKE
+#    define RGBLIGHT_EFFECT_KNIGHT
+#    define RGBLIGHT_EFFECT_CHRISTMAS
+#    define RGBLIGHT_EFFECT_STATIC_GRADIENT
+//#define RGBLIGHT_EFFECT_RGB_TEST
+//#define RGBLIGHT_EFFECT_ALTERNATING
+#endif
+
+#define MOUSEKEY_DELAY 100
+#define MOUSEKEY_INTERVAL 5
+#define MOUSEKEY_MAX_SPEED 5
+#define MOUSEKEY_TIME_TO_MAX 80
 
 #define MK_3_SPEED
-#define MK_C_OFFSET_0      1 // pixels
-#define MK_C_INTERVAL_0   30 // milliseconds
-#define MK_W_OFFSET_0      1
-#define MK_W_INTERVAL_0  120
-#define MK_C_OFFSET_1     12
-#define MK_C_INTERVAL_1    5
-#define MK_W_OFFSET_1      1
-#define MK_W_INTERVAL_1   80
-#define MK_C_OFFSET_2     15
-#define MK_C_INTERVAL_2    3
-#define MK_W_OFFSET_2      1
-#define MK_W_INTERVAL_2   40
+#define MK_C_OFFSET_0 1     // pixels
+#define MK_C_INTERVAL_0 30  // milliseconds
+#define MK_W_OFFSET_0 1
+#define MK_W_INTERVAL_0 120
+#define MK_C_OFFSET_1 12
+#define MK_C_INTERVAL_1 5
+#define MK_W_OFFSET_1 1
+#define MK_W_INTERVAL_1 80
+#define MK_C_OFFSET_2 15
+#define MK_C_INTERVAL_2 3
+#define MK_W_OFFSET_2 1
+#define MK_W_INTERVAL_2 40
